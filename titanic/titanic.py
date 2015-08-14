@@ -2,21 +2,22 @@
 
 import pandas
 from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
+from sklearn import cross_validation
 from sklearn.cross_validation import KFold
+import numpy as np
 
 # We can use the pandas library in python to read in the csv file.
 # This creates a pandas dataframe and assigns it to the titanic variable.
 titanic = pandas.read_csv("train.csv")
 
 # Print the first 5 rows of the dataframe.
-print(titanic.describe(5))
+print(titanic.describe())
 
 # Replace all the missing values in the Age column of titanic
 titanic["Age"] = titanic["Age"].fillna(titanic["Age"].median())
 
 # Find all the unique genders -- the column appears to contain only male and female.
-print(titanic["Sex"].unique())
-
 # Replace categorical data with numerical.
 titanic.loc[titanic["Sex"] == "male", "Sex"] = 0
 titanic.loc[titanic["Sex"] == "female", "Sex"] = 1
@@ -48,7 +49,6 @@ for train, test in kf:
     test_predictions = alg.predict(titanic[predictors].iloc[test,:])
     predictions.append(test_predictions)
 
-import numpy as np
 
 # The predictions are in three separate numpy arrays.  Concatenate them into one.  
 # We concatenate them on axis 0, as they only have one axis.
@@ -58,17 +58,18 @@ predictions = np.concatenate(predictions, axis=0)
 predictions[predictions > .5] = 1
 predictions[predictions <=.5] = 0
 
-accuracy = sum(predictions[predictions == titanic["Survived"]]) / len(predictions)
-print(accuracy)
+accuracy = sum([prediction == survived for (prediction, survived) in zip(predictions, titanic["Survived"])]) / len(predictions)
+print("\n")
+print("Accuracy on 10-fold Linear Regression: ", accuracy)
 
 # Initialize our algorithm
 alg = LogisticRegression(random_state=1)
 # Compute the accuracy score for all the cross validation folds.  (much simpler than what we did before!)
-scores = cross_validation.cross_val_score(alg, titanic[predictors], titanic["Survived"], cv=3)
+scores = cross_validation.cross_val_score(alg, titanic[predictors], titanic["Survived"], cv=10)
 # Take the mean of the scores (because we have one for each fold)
-print(scores.mean())
+print("Accuracy on 10-fold Logistic Regression: ", scores.mean())
 
-titanic_test = pandas.read_csv("titanic_test.csv")
+titanic_test = pandas.read_csv("test.csv")
 
 titanic_test["Age"] = titanic_test["Age"].fillna(titanic["Age"].median())
 
@@ -99,3 +100,4 @@ submission = pandas.DataFrame({
     })
 
 submission.to_csv("kaggle.csv", index=False)
+print("Created .csv with submission")
