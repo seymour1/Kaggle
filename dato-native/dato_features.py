@@ -3,6 +3,7 @@
 
 from os import listdir
 import collections
+import operator
 
 # A function to get the ngrams from a list.
 def find_ngrams(input_list, n):
@@ -20,9 +21,6 @@ for f in listdir("/media/sf_VirtualBox_Shared_Folder/0")[0:2]:
   for trigram in trigrams:
     trigram_counts[''.join(trigram)] = trigram_counts.get(''.join(trigram), 0) + 1
 
-ordered_trigram_counts = collections.OrderedDict(sorted(trigram_counts.items()))
+ordered_trigram_counts = collections.OrderedDict(sorted(trigram_counts.items(), key=operator.itemgetter(1)))
 for key, value in ordered_trigram_counts.items():
   print(key, value)
-#characters = convert_to_characters("train.csv")
-#trigrams = find_ngrams(characters, 3)
-#print(list(trigrams))
